@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const ApplicationLevelError = require('../middlewares/ApplicationError.middleware');
+const ApplicationLevelError = require('../MIDDLEWARES/ApplicationError.middleware');
 
 const connectUsingMongoose = async() =>{
     try{

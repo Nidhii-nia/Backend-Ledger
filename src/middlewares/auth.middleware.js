@@ -1,25 +1,52 @@
 const jwt = require("jsonwebtoken");
 const ApplicationLevelError = require("./ApplicationError.middleware");
+const userModel = require("../SCHEMAS/user.schema");
 
-const Auth = (req, res, next) => {
-  const token = req.cookies.token || req.headers["authorization"];
-  console.log("Auth header: ", req.headers.authorization);
-  
-  console.log("Token: ",token);
-  
+const verifyToken = async (req) => {
+  const authHeader = req.headers.authorization;
 
-  if (!token) {
+  if (!authHeader) {
     throw new ApplicationLevelError("Unauthorized", 401);
   }
 
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.split(" ")[1]
+    : authHeader;
+
   try {
-    const payload = jwt.verify(token, process.env.SECRET_KEY_JWT);
-     req.user = payload;
-    console.log("User: ", payload);
-  } catch (e) {
-    throw new ApplicationLevelError(e.stack, 500);
+    const payload = await jwt.verify(token, process.env.SECRET_KEY_JWT);
+    req.user = payload;
+    return payload;
+  } catch (error) {
+    throw new ApplicationLevelError("Invalid or expired token", 401);
   }
-  next();
 };
 
-module.exports = Auth
+exports.Auth = async (req, res, next) => {
+  try {
+    await verifyToken(req);
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.AuthSystemMiddleware = async (req, res, next) => {
+  try {
+    await verifyToken(req);
+
+    const user = await userModel.findById(req.user.id).select("+systemUser");
+
+    if (!user || !user.systemUser) {
+      return res.status(403).json({
+        message: "Forbidden access, not a system user!",
+        success: false,
+      });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    next(error);
+  }
+};

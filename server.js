@@ -1,5 +1,5 @@
 const app = require("./src/App");
-const connectUsingMongoose = require("./src/config/db");
+const connectUsingMongoose = require("./src/CONFIG/db");
 
 //Connect to server
 app.listen(3000, () => {

@@ -1,12 +1,13 @@
 const dotenv = require('dotenv')
 dotenv.config();
 const express = require("express");
-const ApplicationLevelError = require("./middlewares/ApplicationError.middleware");
-const logger = require("./middlewares/logger.middleware");
-const UserRouter = require("./routes/user.route");
+const ApplicationLevelError = require("./MIDDLEWARES/ApplicationError.middleware");
+const logger = require("./MIDDLEWARES/logger.middleware");
+const UserRouter = require("./ROUTES/user.route");
 const { default: mongoose } = require("mongoose");
 const cookieParser = require("cookie-parser");
-const AccountRouter = require('./routes/account.routes');
+const AccountRouter = require('./ROUTES/account.routes');
+const TransactionRouter = require('./routes/transaction.routes');
 
 //Create express instance
 const app = express();
@@ -19,7 +20,13 @@ app.get('/',(req,res)=>res.send("hey"))
 
 //1. Auth Routes
 app.use("/api/auth", UserRouter);
+
+//2.Account Routes
 app.use("/api/account", AccountRouter);
+
+//3.Transaction routes
+app.use("/api/transaction", TransactionRouter);
+
 
 //Handle Application level errors
 app.use((err, req, res, next) => {

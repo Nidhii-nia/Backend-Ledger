@@ -24,6 +24,12 @@ const userSchema = new Mongoose.Schema(
       minlength: [8, "Password should contain atleast 8 characters"],
       select: false,
     },
+    systemUser: {
+      type:Boolean,
+      default:false,
+      immutable:true,
+      select:false
+    }
   },
   {
     timestamps: true,

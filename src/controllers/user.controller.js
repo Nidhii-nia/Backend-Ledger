@@ -1,6 +1,7 @@
-const UserModel = require("../models/user.model");
+const UserModel = require("../MODELS/user.model");
 const jwt = require("jsonwebtoken");
-const emailService = require("../services/email.sevice");
+const {sendRegisterationEmail} = require("../SERVICES/email.service");
+
 
 class UserController {
   constructor() {
@@ -14,7 +15,7 @@ class UserController {
       if (!result.success) {
         return res.status(422).json(result);
       }
-      await emailService(email, name);
+      await sendRegisterationEmail(email, name);
       return res.status(200).json(result);
     } catch (e) {
       next(e);
@@ -29,7 +30,7 @@ class UserController {
         return res.status(401).json(result);
       }
       const token = await jwt.sign(
-        { id: result.user._id, userName: result.user.email },
+        { _id: result.user._id, userName: result.user.email },
         process.env.SECRET_KEY_JWT,
         {
           expiresIn: "1d",

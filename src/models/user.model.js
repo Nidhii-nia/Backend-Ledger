@@ -1,5 +1,5 @@
-const ApplicationLevelError = require("../middlewares/ApplicationError.middleware");
-const model = require("../schemas/user.schema");
+const ApplicationLevelError = require("../MIDDLEWARES/ApplicationError.middleware");
+const model = require("../SCHEMAS/user.schema");
 
 class UserModel {
   signUser = async (name, email, password) => {
@@ -30,7 +30,7 @@ class UserModel {
       console.log("ORIGINAL ERROR:", error);
       console.log("ORIGINAL MESSAGE:", error.message);
 
-      throw new ApplicationLevelError(error.message, 500);
+      throw new ApplicationLevelError(e.message, 500);
     }
   };
 
