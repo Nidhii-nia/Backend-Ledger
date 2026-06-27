@@ -6,6 +6,7 @@ const logger = require("./middlewares/logger.middleware");
 const UserRouter = require("./routes/user.route");
 const { default: mongoose } = require("mongoose");
 const cookieParser = require("cookie-parser");
+const AccountRouter = require('./routes/account.routes');
 
 //Create express instance
 const app = express();
@@ -18,6 +19,7 @@ app.get('/',(req,res)=>res.send("hey"))
 
 //1. Auth Routes
 app.use("/api/auth", UserRouter);
+app.use("/api/account", AccountRouter);
 
 //Handle Application level errors
 app.use((err, req, res, next) => {

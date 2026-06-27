@@ -1,5 +1,4 @@
 const nodemailer = require("nodemailer");
-const { error } = require("winston");
 
 //transporter to contact google's smtp server [that is why clientid, clientsecret, refreshtoken is required]
 const transporter = nodemailer.createTransport({
@@ -9,7 +8,7 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    refreshToken: process.env.REFRESH_TOKEN,
+    refreshToken: process.env.REFRESH_TOKEN, // from oauth2
   },
 });
 

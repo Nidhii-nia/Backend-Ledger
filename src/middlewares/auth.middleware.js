@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const ApplicationLevelError = require("./ApplicationError.middleware");
 
 const Auth = (req, res, next) => {
-  const token = req.headers["authorization"];
+  const token = req.cookies.token || req.headers["authorization"];
   console.log("Auth header: ", req.headers.authorization);
   
   console.log("Token: ",token);
@@ -14,7 +14,7 @@ const Auth = (req, res, next) => {
 
   try {
     const payload = jwt.verify(token, process.env.SECRET_KEY_JWT);
-    const user = payload;
+     req.user = payload;
     console.log("User: ", payload);
   } catch (e) {
     throw new ApplicationLevelError(e.stack, 500);
