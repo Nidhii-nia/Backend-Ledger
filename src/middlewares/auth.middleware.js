@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const ApplicationLevelError = require("./ApplicationError.middleware");
 const userModel = require("../SCHEMAS/user.schema");
+const TokenBlackListModel = require("../SCHEMAS/blackList.schema");
 
 const verifyToken = async (req) => {
   const authHeader = req.headers.authorization;
@@ -12,6 +13,14 @@ const verifyToken = async (req) => {
   const token = authHeader.startsWith("Bearer ")
     ? authHeader.split(" ")[1]
     : authHeader;
+
+    const isBlackListed = await TokenBlackListModel.findOne({token:token});
+    if(isBlackListed){
+      return res.status(401).json({
+        message:"Unauthorized access, token invalid!",
+        success:false
+      })
+    }
 
   try {
     const payload = await jwt.verify(token, process.env.SECRET_KEY_JWT);

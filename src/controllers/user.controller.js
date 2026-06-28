@@ -41,6 +41,33 @@ class UserController {
       next(e);
     }
   };
+
+userLogout = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({
+        success: false,
+        message: "Authorization token is required.",
+      });
+    }
+
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : authHeader;
+
+    const result = await this.UserModel.signOut(token);
+    console.log("Result", result);
+    
+if(res.cookie){
+  res.cookie("token","");
+}
+    return res.status(200).json(result);
+  } catch (e) {
+    next(e);
+  }
+};
 }
 
 module.exports = UserController;

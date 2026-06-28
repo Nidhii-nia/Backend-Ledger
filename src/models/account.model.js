@@ -64,6 +64,8 @@ class AccountModel {
       throw new ApplicationLevelError(e.message, 500);
     }
   };
+
+  
 }
 
 module.exports = AccountModel;

@@ -1,4 +1,5 @@
 const ApplicationLevelError = require("../MIDDLEWARES/ApplicationError.middleware");
+const TokenBlackListModel = require("../SCHEMAS/blackList.schema");
 const model = require("../SCHEMAS/user.schema");
 
 class UserModel {
@@ -24,6 +25,7 @@ class UserModel {
 
       return {
         message: "User registration successful!",
+        user: savedResult,
         success: true,
       };
     } catch (error) {
@@ -67,6 +69,36 @@ class UserModel {
         success: true,
       };
     } catch (e) {
+      throw new ApplicationLevelError(e.message, 500);
+    }
+  };
+
+  signOut = async (token) => {
+    try {
+      if (!token) {
+        return {
+          message: "Authorization token is required to sign out.",
+          success: false,
+        };
+      }
+
+      const blacklist = new TokenBlackListModel({
+        token,
+      });
+
+      await blacklist.save();
+
+      return {
+        message: "User logged out successfully!",
+        success: true,
+      };
+    } catch (e) {
+      if (e.code === 11000) {
+        return {
+          message: "Token is already blacklisted.",
+          success: true,
+        };
+      }
       throw new ApplicationLevelError(e.message, 500);
     }
   };

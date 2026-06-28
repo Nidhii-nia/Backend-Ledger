@@ -13,26 +13,12 @@ class TransactionModel {
     amount,
     idempotencyKey,
   ) => {
-    const session = await mongoose.startSession();
     try {
       const normalizedIdempotencyKey =
         typeof idempotencyKey === "string" && idempotencyKey.trim()
           ? idempotencyKey.trim()
           : undefined;
       const finalIdempotencyKey = normalizedIdempotencyKey || randomUUID();
-
-      const transactionsWithMissingKeys = await model.find({
-        $or: [
-          { idempotencyKey: null },
-          { idempotencyKey: "" },
-          { idempotencyKey: { $exists: false } },
-        ],
-      });
-
-      for (const transactionDoc of transactionsWithMissingKeys) {
-        transactionDoc.idempotencyKey = randomUUID();
-        await transactionDoc.save({ session });
-      }
 
       //1. VALIDATE REQUEST
       if (!fromAccount || !toAccount || !amount || !finalIdempotencyKey) {
@@ -128,9 +114,7 @@ class TransactionModel {
         };
       }
 
-      // 6. Create transaction
-      session.startTransaction();
-
+      // 6. Persist PENDING transaction immediately
       const transaction = new model({
         fromAccount: fromUserAccount._id,
         toAccount: toUserAccount._id,
@@ -139,31 +123,49 @@ class TransactionModel {
         status: "PENDING",
       });
 
-      await transaction.save({ session });
+      await transaction.save();
 
-      const debitLedger = new ledgerModel({
-        account: fromUserAccount._id,
-        amount,
-        transaction: transaction._id,
-        type: "DEBIT",
-      });
+      await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
 
-      await debitLedger.save({ session });
+      const session = await mongoose.startSession();
+      try {
+        session.startTransaction();
 
-      const creditLedger = new ledgerModel({
-        account: toUserAccount._id,
-        amount,
-        transaction: transaction._id,
-        type: "CREDIT",
-      });
+        const debitLedger = new ledgerModel({
+          account: fromUserAccount._id,
+          amount,
+          transaction: transaction._id,
+          type: "DEBIT",
+        });
 
-      await creditLedger.save({ session });
+        await debitLedger.save({ session });
 
-      transaction.status = "COMPLETED";
+        const creditLedger = new ledgerModel({
+          account: toUserAccount._id,
+          amount,
+          transaction: transaction._id,
+          type: "CREDIT",
+        });
 
-      await transaction.save({ session });
+        await creditLedger.save({ session });
 
-      await session.commitTransaction();
+        transaction.status = "COMPLETED";
+        await transaction.save({ session });
+
+        await session.commitTransaction();
+      } catch (error) {
+        if (session.inTransaction()) {
+          await session.abortTransaction();
+        }
+
+        transaction.status = "FAILED";
+        await transaction.save();
+
+        throw error;
+      } finally {
+        session.endSession();
+      }
+
       return {
         success: true,
         message: "Transaction created successfully.",
@@ -172,12 +174,7 @@ class TransactionModel {
         toUserAccount,
       };
     } catch (e) {
-      if (session.inTransaction()) {
-        await session.abortTransaction();
-      }
       throw new ApplicationLevelError(e.message, 500);
-    } finally {
-      session.endSession();
     }
   };
 

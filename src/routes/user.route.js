@@ -13,11 +13,8 @@ UserRouter.post("/register", (req, res, next) => {
 //2. Login Route: POST /api/auth/login
 UserRouter.post("/login", userController.userLogin)
 
-//3.testing
-UserRouter.get('/',Auth,(req,res)=>{
-  res.send("Passed!")
-  console.log("Passed successfully");
-  
-});
+
+//3. Logout Route : POST /api/auth/logout
+UserRouter.post("/logout", userController.userLogout);
 
 module.exports = UserRouter;
