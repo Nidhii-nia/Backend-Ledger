@@ -30,12 +30,17 @@ class UserController {
         return res.status(401).json(result);
       }
       const token = await jwt.sign(
-        { _id: result.user._id, userName: result.user.email },
+        { _id: result.user._id, id: result.user._id, userName: result.user.email },
         process.env.SECRET_KEY_JWT,
         {
           expiresIn: "1d",
         },
       );
+      // ensure client receives both _id and id for compatibility
+      if (result && result.user) {
+        result.user.id = result.user._id;
+      }
+
       return res.status(200).json({ result, Token: token });
     } catch (e) {
       next(e);

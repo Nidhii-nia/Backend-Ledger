@@ -14,17 +14,22 @@ const verifyToken = async (req) => {
     ? authHeader.split(" ")[1]
     : authHeader;
 
-    const isBlackListed = await TokenBlackListModel.findOne({token:token});
-    if(isBlackListed){
-      return res.status(401).json({
-        message:"Unauthorized access, token invalid!",
-        success:false
-      })
-    }
+  const isBlackListed = await TokenBlackListModel.findOne({ token: token });
+  if (isBlackListed) {
+    throw new ApplicationLevelError("Unauthorized access, token invalid!", 401);
+  }
 
   try {
-    const payload = await jwt.verify(token, process.env.SECRET_KEY_JWT);
+    console.log("Received Token:", token);
+
+    const decoded = jwt.decode(token);
+    console.log("Decoded without verify:", decoded);
+
+    const payload = jwt.verify(token, process.env.SECRET_KEY_JWT);
+    console.log("Verified Payload:", payload);
     req.user = payload;
+    console.log("Payload Auth:", req.user);
+
     return payload;
   } catch (error) {
     throw new ApplicationLevelError("Invalid or expired token", 401);
@@ -44,7 +49,7 @@ exports.AuthSystemMiddleware = async (req, res, next) => {
   try {
     await verifyToken(req);
 
-    const user = await userModel.findById(req.user.id).select("+systemUser");
+    const user = await userModel.findById(req.user._id).select("+systemUser");
 
     if (!user || !user.systemUser) {
       return res.status(403).json({
@@ -54,6 +59,7 @@ exports.AuthSystemMiddleware = async (req, res, next) => {
     }
 
     req.user = user;
+    console.log("Payload AuthSystemMiddleware:", req.user);
     next();
   } catch (error) {
     next(error);

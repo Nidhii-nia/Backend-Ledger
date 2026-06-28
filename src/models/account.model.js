@@ -21,7 +21,7 @@ class AccountModel {
       console.log("UserId: ", userId);
 
       const accounts = await model.find({ user: userId });
-      if (!accounts) {
+      if (!accounts.length>0) {
         return {
           message: "No accounts found, create one to retrieve!",
           success: false,

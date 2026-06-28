@@ -7,7 +7,16 @@ class AccountController {
 
   registerAccount = async (req, res, next) => {
     try {
-      let { id } = req.user;
+      console.log('registerAccount req.user:', req.user);
+      const id = req.user && (req.user._id || req.user.id);
+
+      if (!id) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized: user id missing in token.",
+        });
+      }
+
       const result = await this.AccountModel.createAccount(id);
       return res.status(201).json(result);
     } catch (e) {

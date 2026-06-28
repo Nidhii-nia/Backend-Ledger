@@ -7,8 +7,8 @@ const AccountController = new accountController();
 const AccountRouter = express.Router();
 
 /**for creating new account
- ---/api/register */
-AccountRouter.post("/register-acount", Auth, AccountController.registerAccount);
+ ---/api/account/register */
+AccountRouter.post("/register-account", Auth, AccountController.registerAccount);
 
 /**Get balance
  * ---/api/account/balance/:accountId */
