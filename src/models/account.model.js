@@ -18,8 +18,8 @@ class AccountModel {
 
   fetchAllUserAccounts = async (userId) => {
     try {
-      console.log("UserId: ",userId);
-      
+      console.log("UserId: ", userId);
+
       const accounts = await model.find({ user: userId });
       if (!accounts) {
         return {
@@ -31,6 +31,34 @@ class AccountModel {
         message: "Accounts fetched successfully!",
         accounts,
         success: true,
+      };
+    } catch (e) {
+      throw new ApplicationLevelError(e.message, 500);
+    }
+  };
+
+  fetchAccountBalance = async (accountId, userId) => {
+    try {
+      const accountExists = await model.findOne({
+        _id: accountId,
+        user: userId,
+      });
+
+      if (!accountExists) {
+        return {
+          message: "Account not found!",
+          success: false,
+        };
+      }
+
+      const balance = await accountExists.getBalance();
+      return {
+        message: "Balance fetched successfully!",
+        balanceInfo: {
+          accountId: accountExists._id,
+          balance: balance,
+        },
+        success:true
       };
     } catch (e) {
       throw new ApplicationLevelError(e.message, 500);
